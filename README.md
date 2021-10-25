@@ -26,31 +26,31 @@ Form Input Fields:
 4.	Montghly Energy Bill
 5.	Credit Score
 6.	Add a Solar Battery (Boolean)
-•	If true, add $13,500 to Totala System Cost
-•	If true, add $2,780 Cash Rebate to Savings
+- If true, add $13,500 to Totala System Cost
+- If true, add $2,780 Cash Rebate to Savings
 
 Calculated Fields:
 1.	Interest Rate:
-•	pulled from Zillow API from user-inputed data
+- pulled from Zillow API from user-inputed data
 2.	New Monthly Mortgage Payment:
-•	(Loan Total * (Interest Rate / 1200)) /(1 - Math.pow(1 / (1 + Interest Rate / 1200), 30 * 12))
+- (Loan Total * (Interest Rate / 1200)) /(1 - Math.pow(1 / (1 + Interest Rate / 1200), 30 * 12))
 3.	Property Tax Fees:
-•	(Value of Home * 0.01) / 12;
+- (Value of Home * 0.01) / 12;
 4.	System Size:
-•	((Monthly Energy Bill/.11) * 12)/2190
+- ((Monthly Energy Bill/.11) * 12)/2190
 5.	System Cost:
-•	(Sytem Size * 3.5 * 1,000) + Solar Battery($13,500)
+- (Sytem Size * 3.5 * 1,000) + Solar Battery($13,500)
 6.	Out of Pocket Costs:
-•	$0.00 (Constant: assume no out of pocket costs)
+- $0.00 (Constant: assume no out of pocket costs)
 7.	Loan Total:
-•	System Cost + Current Mortgage Balance
+- System Cost + Current Mortgage Balance
 8.	Tax Incentive Credit:
-•	26% of System Cost
+- 26% of System Cost
 9.	Cash Rebate:
-•	$2,780.00 (Constant: included if user opts to purchase Solar Battery)
+- $2,780.00 (Constant: included if user opts to purchase Solar Battery)
 10.	Current Monthly Savings:
-•	Current Monthly Expenses - New Mortgage
-•	Assumes there is no energy bill due to Solar Installation
+- Current Monthly Expenses - New Mortgage
+- Assumes there is no energy bill due to Solar Installation
 11.	Current Yearly Savings:
-•	Current Monthly Savings * 12
+- Current Monthly Savings * 12
 
