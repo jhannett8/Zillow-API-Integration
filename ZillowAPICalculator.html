@@ -1,0 +1,260 @@
+<script>
+    jQuery(document).ready(function ($) {
+      var Rates;
+      var Form_NVEnergyBill;
+      var Form_CurrentMortgagePayment;
+      var Form_ProprtyValue;
+      var Form_MortgageValue;
+      var SystemCost;
+      var Form_TotalLoan;
+      var Form_CurrentMonthlyExpenses;
+      var Form_CreditScoreBucket;
+      var var_CreditScoreBucket;
+      var NewMonthlyMortgage;
+      var EstimatedMonthlySavings;
+      var EstimatedYearlySavings;
+  
+      const APICall = (
+        Form_ProprtyValue,
+        Form_TotalLoan,
+        var_CreditScoreBucket
+      ) => {
+        //API Credentials
+        const PartnerId =
+          "https://mortgageapi.zillow.com/getCurrentRates?partnerId=<Zillow_Partner_ID>";
+        const PropertyValue =
+          "&queries.default.propertyBucket.propertyValue=" + Form_ProprtyValue;
+        const TotalLoan =
+          "&queries.default.propertyBucket.loanAmount=" + Form_TotalLoan;
+        const CreditScoreBucket =
+          "&queries.default.creditScoreBucket=" + var_CreditScoreBucket;
+        const Refinance = "&queries.default.refinance=true";
+        const Program = "&queries.default.program=Fixed30Year";
+        const api_url_conc =
+          PartnerId +
+          PropertyValue +
+          TotalLoan +
+          CreditScoreBucket +
+          Refinance +
+          Program;
+  
+        const getData = async () => {
+          const response = await fetch(api_url_conc);
+          const data = await response.json();
+  
+          //Get Interest Rate From API
+          Rates = data.rates.default.rate;
+  
+          if (Rates == 0) {
+            Rates = 3.868;
+          }
+  
+          console.log("Rates: " + Rates);
+  
+          Expenses(
+            Form_TotalLoan,
+            Rates,
+            Form_ProprtyValue,
+            Form_CurrentMonthlyExpenses
+          );
+        };
+  
+        getData();
+  
+        //return Rates;
+      };
+  
+      function Expenses(
+        Form_TotalLoan,
+        Rates,
+        Form_ProprtyValue,
+        Form_CurrentMonthlyExpenses
+      ) {
+        var Form_NewMonthlyMortgage =
+          (Form_TotalLoan * (Rates / 1200)) /
+          (1 - Math.pow(1 / (1 + Rates / 1200), 30 * 12));
+  
+        var PropertyTaxFees = (Form_ProprtyValue * 0.01) / 12;
+        PropertyTaxFees = parseInt(PropertyTaxFees);
+  
+        var NewMortgage =
+          parseInt(PropertyTaxFees) + parseInt(Form_NewMonthlyMortgage);
+        NewMortgage = Form_NewMonthlyMortgage.toFixed(2);
+        var NewMonthlyMortgage = Form_NewMonthlyMortgage.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+  
+        var Form_EstimatedMonthlySavings =
+          Form_CurrentMonthlyExpenses - NewMortgage;
+        var EstimatedMonthlySavings = Form_EstimatedMonthlySavings.toLocaleString(
+          "en-US",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        );
+  
+        var EstimatedYearlySavings = Form_EstimatedMonthlySavings * 12;
+        EstimatedYearlySavings = EstimatedYearlySavings.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+  
+        if (NewMonthlyMortgage === "NaN") {
+          $("#field_t5mof").val("$0.00");
+        } else {
+          $("#field_t5mof").val("$" + NewMonthlyMortgage);
+        }
+  
+        $("#field_Zillow_Rates").val(Rates);
+        $("#field_EstimatedMonthlySavings").val("$" + EstimatedMonthlySavings);
+        $("#field_EstimatedYearlySavings").val("$" + EstimatedYearlySavings);
+      }
+  
+      function CreditScoreCheck(Form_CreditScoreBucket) {
+        if (680 <= Form_CreditScoreBucket && Form_CreditScoreBucket < 780) {
+          var_CreditScoreBucket = "High";
+        } else if (780 <= Form_CreditScoreBucket) {
+          var_CreditScoreBucket = "VeryHigh";
+        } else {
+          var_CreditScoreBucket = "Low";
+        }
+        return var_CreditScoreBucket;
+      }
+  
+      function SetValues() {
+        //Energy Bill
+        Form_NVEnergyBill = $("#field_Monthy_Energy_Bill")
+          .val()
+          .replace(/[^0-9]/g, "");
+        Form_NVEnergyBill = parseInt(Form_NVEnergyBill);
+  
+        //Current Mortgage Payment
+        Form_CurrentMortgagePayment = $("#field_Monthly_Mortgage_Payment")
+          .val()
+          .replace(/[^0-9]/g, "");
+        Form_CurrentMortgagePayment = parseInt(Form_CurrentMortgagePayment);
+  
+        //Property Value
+        Form_ProprtyValue = $("#Field_Property_Value")
+          .val()
+          .replace(/[^0-9]/g, "");
+        Form_ProprtyValue = parseInt(Form_ProprtyValue);
+  
+        //Grab the value of the changed field
+        Form_MortgageValue = $("#field_Current_Mortgage_Value")
+          .val()
+          .replace(/[^0-9]/g, "");
+        Form_MortgageValue = parseInt(Form_MortgageValue);
+  
+        //Cost Of Panels
+        SystemCost = parseInt($("#field_SystemCost").val());
+  
+        //Total Loan: Monthly Mortgage Payment + Total Cost of Panels
+        Form_TotalLoan = parseInt(Form_MortgageValue) + parseInt(SystemCost);
+  
+        //Current Monthly Expenses
+        Form_CurrentMonthlyExpenses =
+          parseInt(Form_NVEnergyBill) + parseInt(Form_CurrentMortgagePayment);
+        $("#field_CurrentMonthlyExpenses").val(Form_CurrentMonthlyExpenses);
+  
+        //Credit Score
+        Form_CreditScoreBucket = parseInt($("#field_Credit_Score").val());
+  
+        return Form_NVEnergyBill;
+        return Form_CurrentMortgagePayment;
+        return Form_ProprtyValue;
+        return Form_MortgageValue;
+        return SystemCost;
+        return Form_TotalLoan;
+        return Form_CurrentMonthlyExpenses;
+        return Form_CreditScoreBucket;
+      }
+  
+      //Change In Value Of Home
+      $("#Field_Property_Value").change(function () {
+        SetValues();
+  
+        CreditScoreCheck(Form_CreditScoreBucket);
+  
+        var Form_ProprtyValue_IsNaN = isNaN(Form_ProprtyValue);
+        var Form_TotalLoan_IsNaN = isNaN(Form_TotalLoan);
+  
+        if (!Form_ProprtyValue_IsNaN && !Form_TotalLoan_IsNaN) {
+          APICall(Form_ProprtyValue, Form_TotalLoan, var_CreditScoreBucket);
+        }
+      });
+  
+      //Change In Mortgage Value
+      $("#field_Current_Mortgage_Value").change(function () {
+        SetValues();
+  
+        CreditScoreCheck(Form_CreditScoreBucket);
+  
+        var Form_ProprtyValue_IsNaN = isNaN(Form_ProprtyValue);
+        var Form_TotalLoan_IsNaN = isNaN(Form_TotalLoan);
+  
+        if (!Form_ProprtyValue_IsNaN && !Form_TotalLoan_IsNaN) {
+          APICall(Form_ProprtyValue, Form_TotalLoan, var_CreditScoreBucket);
+        }
+      });
+  
+      //Change In Credit Score
+      $("#field_Credit_Score").change(function () {
+        SetValues();
+  
+        CreditScoreCheck(Form_CreditScoreBucket);
+  
+        var Form_ProprtyValue_IsNaN = isNaN(Form_ProprtyValue);
+        var Form_TotalLoan_IsNaN = isNaN(Form_TotalLoan);
+  
+        if (!Form_ProprtyValue_IsNaN && !Form_TotalLoan_IsNaN) {
+          APICall(Form_ProprtyValue, Form_TotalLoan, var_CreditScoreBucket);
+        }
+      });
+  
+      //Battery
+      $("#field_AddSolarBattery").change(function () {
+        SetValues();
+  
+        CreditScoreCheck(Form_CreditScoreBucket);
+  
+        var Form_ProprtyValue_IsNaN = isNaN(Form_ProprtyValue);
+        var Form_TotalLoan_IsNaN = isNaN(Form_TotalLoan);
+  
+        if (!Form_ProprtyValue_IsNaN && !Form_TotalLoan_IsNaN) {
+          APICall(Form_ProprtyValue, Form_TotalLoan, var_CreditScoreBucket);
+        }
+        Expenses(
+          Form_TotalLoan,
+          Rates,
+          Form_ProprtyValue,
+          Form_CurrentMonthlyExpenses
+        );
+      });
+  
+      //Change in Monthly Energy Bill
+      $("#field_Monthy_Energy_Bill").change(function () {
+        Rates = $("#field_Zillow_Rates").val();
+  
+        SetValues();
+        Expenses(
+          Form_TotalLoan,
+          Rates,
+          Form_ProprtyValue,
+          Form_CurrentMonthlyExpenses
+        );
+      });
+  
+      //Change Monthly Mortgage Payment
+      $("#field_Monthly_Mortgage_Payment").change(function () {
+        Rates = $("#field_Zillow_Rates").val();
+  
+        SetValues();
+        Expenses(
+          Form_TotalLoan,
+          Rates,
+          Form_ProprtyValue,
+          Form_CurrentMonthlyExpenses
+        );
+      });
+    });
+  </script>
